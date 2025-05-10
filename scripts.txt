@@ -1,0 +1,5 @@
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "P", function()
+    local point = hs.mouse.getAbsolutePosition()
+    hs.alert.show("Mouse at: " .. hs.inspect(point))
+end)
+
