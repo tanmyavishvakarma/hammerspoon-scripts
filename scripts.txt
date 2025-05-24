@@ -1,5 +1,54 @@
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "P", function()
+local point1 = hs.geometry.point(1380, 19)
+local point2 = hs.geometry.point(1404, 185)
+local point3 = hs.geometry.point(1373, 85)
+local newDesktop = hs.geometry.point(37, 94)
+
+hs.hotkey.bind({"alt", "shift"}, "R", function()
+    hs.eventtap.leftClick(point1)
+    hs.eventtap.leftClick(point2)
+end)
+
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", function()
+    hs.eventtap.keyStroke({"cmd", "alt"}, "H")
+    hs.timer.usleep(1000)
+    hs.eventtap.keyStroke({"cmd", "alt"}, "M")
+end)
+
+hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "P", function()
     local point = hs.mouse.getAbsolutePosition()
     hs.alert.show("Mouse at: " .. hs.inspect(point))
 end)
 
+hs.hotkey.bind({"alt", "shift"}, "D", function()
+    hs.spaces.addSpaceToScreen()
+    local screen = hs.screen.mainScreen()
+    local screenUUID = screen:getUUID()
+    local screenIDs = hs.spaces.allSpaces()[screenUUID]    
+    hs.spaces.gotoSpace(screenIDs[#screenIDs])
+end)
+
+
+hs.hotkey.bind({"alt", "shift"}, "X", function()
+    local activeID = hs.spaces.focusedSpace()
+    local screen = hs.screen.mainScreen()
+    local screenUUID = screen:getUUID()
+    local screenIDs = hs.spaces.allSpaces()[screenUUID]
+
+    if #screenIDs < 2 then
+        return
+    end
+    
+    hs.spaces.gotoSpace(screenIDs[1])
+    
+    hs.timer.usleep(300000)
+    
+    local center = hs.geometry.rectMidPoint(screen:frame())
+    hs.mouse.setAbsolutePosition(center)
+    local newSpace = hs.spaces.focusedSpace()
+    
+    if newSpace ~= activeID then
+        hs.spaces.removeSpace(activeID)
+    else
+        hs.alert("Failed to switch spaces - cannot remove")
+    end
+end)
