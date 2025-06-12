@@ -1,11 +1,19 @@
 local point1 = hs.geometry.point(1380, 19)
 local point2 = hs.geometry.point(1404, 185)
-local point3 = hs.geometry.point(1373, 85)
+local point3 = hs.geometry.point(818, 614)
 local newDesktop = hs.geometry.point(37, 94)
 
 hs.hotkey.bind({"alt", "shift"}, "R", function()
+    local currentPoint = hs.mouse.getAbsolutePosition()
+
+    hs.eventtap.leftClick(point3)
+    hs.timer.usleep(100000)
     hs.eventtap.leftClick(point1)
+    hs.timer.usleep(10000)
     hs.eventtap.leftClick(point2)
+    hs.timer.usleep(1000)
+    hs.eventtap.leftClick(currentPoint)
+
 end)
 
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", function()
@@ -52,3 +60,20 @@ hs.hotkey.bind({"alt", "shift"}, "X", function()
         hs.alert("Failed to switch spaces - cannot remove")
     end
 end)
+
+hs.hotkey.bind({"alt", "cmd", "ctrl"}, "\\", function()
+    local slackBundleID = "com.tinyspeck.slackmacgap"
+    local warpBundleID = "dev.warp.Warp-Stable"
+    local cursorApp = "Cursor.app"
+    local arcBundleID = "company.thebrowser.Browser"
+
+    hs.application.launchOrFocusByBundleID(slackBundleID)
+    hs.application.launchOrFocusByBundleID(warpBundleID)
+
+    hs.application.launchOrFocus(cursorApp)
+
+    hs.timer.doAfter(2, function()
+        hs.application.launchOrFocusByBundleID(arcBundleID)
+    end)
+end)
+
