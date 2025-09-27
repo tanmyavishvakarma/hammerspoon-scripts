@@ -1,5 +1,5 @@
-local point1 = hs.geometry.point(1380, 19)
-local point2 = hs.geometry.point(1404, 185)
+local point1 = hs.geometry.point(1525, 18)
+local point2 = hs.geometry.point(1573, 185)
 local point3 = hs.geometry.point(818, 614)
 local newDesktop = hs.geometry.point(37, 94)
 
@@ -56,12 +56,14 @@ hs.hotkey.bind({"alt", "shift"}, "X", function()
     
     if newSpace ~= activeID then
         hs.spaces.removeSpace(activeID)
+        screenIDs = hs.spaces.allSpaces()[screenUUID]
+        hs.spaces.gotoSpace(screenIDs[#screenIDs])
     else
         hs.alert("Failed to switch spaces - cannot remove")
     end
 end)
 
-hs.hotkey.bind({"alt", "cmd", "ctrl"}, "\\", function()
+hs.hotkey.bind({"alt", "cmd", "ctrl"}, "up", function()
     local slackBundleID = "com.tinyspeck.slackmacgap"
     local warpBundleID = "dev.warp.Warp-Stable"
     local cursorApp = "Cursor.app"
