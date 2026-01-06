@@ -79,3 +79,42 @@ hs.hotkey.bind({"alt", "cmd", "ctrl"}, "up", function()
     end)
 end)
 
+hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "H", function()
+    hs.execute("open ~/.hammerspoon/init.lua")
+end)
+
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "A", function()
+    -- 1. Create 3 new Arc windows via AppleScript
+    local script = [[
+        tell application "Arc"
+            repeat 3 times
+                make new window
+            end repeat
+            activate
+        end tell
+    ]]
+    hs.osascript.applescript(script)
+
+    -- 2. Give Arc a moment to spawn windows
+    hs.timer.doAfter(1.5, function()
+        local app = hs.appfinder.appFromName("Arc")
+        if not app then return end
+
+        local windows = app:allWindows()
+        local screens = hs.screen.allScreens()
+
+        -- 3. Sort windows by creation time (rough order)
+        table.sort(windows, function(a, b)
+            return a:id() < b:id()
+        end)
+
+        -- 4. Move each window to a different screen
+        for i, win in ipairs(windows) do
+            local targetScreen = screens[((i - 1) % #screens) + 1]
+            if win:isStandard() then
+                win:moveToScreen(targetScreen)
+                win:centerOnScreen(targetScreen)
+            end
+        end
+    end)
+end)
