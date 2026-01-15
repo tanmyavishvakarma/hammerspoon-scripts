@@ -119,40 +119,56 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "A", function()
     end)
 end)
 
-local mouseCircle = nil
+local mouseCircleRed = nil
+local mouseCircleYellow = nil
 local mouseCircleTimer = nil
 
 local function drawMouseCircle()
-    -- Delete existing circle if present
-    if mouseCircle then
-        mouseCircle:delete()
-        mouseCircle = nil
-    end
+    -- Cleanup existing
+    if mouseCircleRed then mouseCircleRed:delete() end
+    if mouseCircleYellow then mouseCircleYellow:delete() end
+    mouseCircleRed = nil
+    mouseCircleYellow = nil
 
-    -- Get mouse position
     local mousePos = hs.mouse.absolutePosition()
-
     local radius = 60
-    local frame = {
-        x = mousePos.x - radius,
-        y = mousePos.y - radius,
-        w = radius * 2,
-        h = radius * 2
-    }
 
-    mouseCircle = hs.drawing.circle(hs.geometry.rect(frame))
-    mouseCircle:setStrokeColor({ red = 1, green = 0, blue = 0, alpha = 1 })
-    mouseCircle:setFill(false)
-    mouseCircle:setStrokeWidth(10)
-    mouseCircle:show()
+    -- Outer YELLOW circle
+    mouseCircleYellow = hs.drawing.circle(
+        hs.geometry.rect(
+            mousePos.x - radius - 10,
+            mousePos.y - radius - 10,
+            (radius + 10) * 2,
+            (radius + 10) * 2
+        )
+    )
+    mouseCircleYellow:setStrokeColor({ red = 1, green = 1, blue = 0, alpha = 1 })
+    mouseCircleYellow:setFill(false)
+    mouseCircleYellow:setStrokeWidth(30)
+    mouseCircleYellow:show()
 
-    -- Auto-remove after 0.6 seconds
+    -- Inner RED circle
+    mouseCircleRed = hs.drawing.circle(
+        hs.geometry.rect(
+            mousePos.x - radius,
+            mousePos.y - radius,
+            radius * 2,
+            radius * 2
+        )
+    )
+    mouseCircleRed:setStrokeColor({ red = 1, green = 0, blue = 0, alpha = 1 })
+    mouseCircleRed:setFill(false)
+    mouseCircleRed:setStrokeWidth(30)
+    mouseCircleRed:show()
+
+    -- Auto-remove
     mouseCircleTimer = hs.timer.doAfter(0.6, function()
-        if mouseCircle then
-            mouseCircle:delete()
-            mouseCircle = nil
-        end
+        if mouseCircleRed then mouseCircleRed:delete() end
+        if mouseCircleYellow then mouseCircleYellow:delete() end
+        mouseCircleRed = nil
+        mouseCircleYellow = nil
     end)
 end
 
 hs.hotkey.bind({ "ctrl" }, "F6", drawMouseCircle)
+
