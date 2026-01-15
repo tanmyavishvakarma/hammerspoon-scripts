@@ -118,3 +118,41 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "A", function()
         end
     end)
 end)
+
+local mouseCircle = nil
+local mouseCircleTimer = nil
+
+local function drawMouseCircle()
+    -- Delete existing circle if present
+    if mouseCircle then
+        mouseCircle:delete()
+        mouseCircle = nil
+    end
+
+    -- Get mouse position
+    local mousePos = hs.mouse.absolutePosition()
+
+    local radius = 60
+    local frame = {
+        x = mousePos.x - radius,
+        y = mousePos.y - radius,
+        w = radius * 2,
+        h = radius * 2
+    }
+
+    mouseCircle = hs.drawing.circle(hs.geometry.rect(frame))
+    mouseCircle:setStrokeColor({ red = 1, green = 0, blue = 0, alpha = 1 })
+    mouseCircle:setFill(false)
+    mouseCircle:setStrokeWidth(10)
+    mouseCircle:show()
+
+    -- Auto-remove after 0.6 seconds
+    mouseCircleTimer = hs.timer.doAfter(0.6, function()
+        if mouseCircle then
+            mouseCircle:delete()
+            mouseCircle = nil
+        end
+    end)
+end
+
+hs.hotkey.bind({ "ctrl" }, "F6", drawMouseCircle)
