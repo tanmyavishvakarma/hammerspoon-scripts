@@ -9,9 +9,9 @@ hs.hotkey.bind({"alt", "shift"}, "R", function()
     hs.eventtap.leftClick(point3)
     hs.timer.usleep(100000)
     hs.eventtap.leftClick(point1)
-    hs.timer.usleep(10000)
+    hs.timer.usleep(30000)
     hs.eventtap.leftClick(point2)
-    hs.timer.usleep(1000)
+    hs.timer.usleep(2000)
     hs.eventtap.leftClick(currentPoint)
 
 end)
@@ -75,7 +75,12 @@ hs.hotkey.bind({"alt", "cmd", "ctrl"}, "up", function()
     hs.application.launchOrFocus(cursorApp)
 
     hs.timer.doAfter(2, function()
-        hs.application.launchOrFocusByBundleID(arcBundleID)
+        hs.osascript.applescript([[
+            tell application "Arc"
+                activate
+                make new window
+            end tell
+        ]])
     end)
 end)
 
@@ -83,7 +88,7 @@ hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "H", function()
     hs.execute("open ~/.hammerspoon/init.lua")
 end)
 
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "A", function()
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "C", function()
     -- 1. Create 3 new Arc windows via AppleScript
     local script = [[
         tell application "Arc"
@@ -119,56 +124,14 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "A", function()
     end)
 end)
 
-local mouseCircleRed = nil
-local mouseCircleYellow = nil
-local mouseCircleTimer = nil
+hs.hotkey.bind({"ctrl"}, "F6", function()
+    hs.eventtap.leftClick(hs.geometry.point(3100, 450))
+end)
 
-local function drawMouseCircle()
-    -- Cleanup existing
-    if mouseCircleRed then mouseCircleRed:delete() end
-    if mouseCircleYellow then mouseCircleYellow:delete() end
-    mouseCircleRed = nil
-    mouseCircleYellow = nil
+hs.hotkey.bind({"ctrl"}, "F7", function()
+    hs.eventtap.leftClick(hs.geometry.point(5488, 602))
+end)
 
-    local mousePos = hs.mouse.absolutePosition()
-    local radius = 60
-
-    -- Outer YELLOW circle
-    mouseCircleYellow = hs.drawing.circle(
-        hs.geometry.rect(
-            mousePos.x - radius - 10,
-            mousePos.y - radius - 10,
-            (radius + 10) * 2,
-            (radius + 10) * 2
-        )
-    )
-    mouseCircleYellow:setStrokeColor({ red = 1, green = 1, blue = 0, alpha = 1 })
-    mouseCircleYellow:setFill(false)
-    mouseCircleYellow:setStrokeWidth(30)
-    mouseCircleYellow:show()
-
-    -- Inner RED circle
-    mouseCircleRed = hs.drawing.circle(
-        hs.geometry.rect(
-            mousePos.x - radius,
-            mousePos.y - radius,
-            radius * 2,
-            radius * 2
-        )
-    )
-    mouseCircleRed:setStrokeColor({ red = 1, green = 0, blue = 0, alpha = 1 })
-    mouseCircleRed:setFill(false)
-    mouseCircleRed:setStrokeWidth(30)
-    mouseCircleRed:show()
-
-    -- Auto-remove
-    mouseCircleTimer = hs.timer.doAfter(0.6, function()
-        if mouseCircleRed then mouseCircleRed:delete() end
-        if mouseCircleYellow then mouseCircleYellow:delete() end
-        mouseCircleRed = nil
-        mouseCircleYellow = nil
-    end)
-end
-
-hs.hotkey.bind({ "ctrl" }, "F6", drawMouseCircle)
-
+hs.hotkey.bind({"ctrl"}, "F5", function()
+    hs.eventtap.leftClick(hs.geometry.point(907, 564))
+end)
