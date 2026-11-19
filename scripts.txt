@@ -1,5 +1,5 @@
-local point1 = hs.geometry.point(1525, 18)
-local point2 = hs.geometry.point(1573, 185)
+local point1 = hs.geometry.point(1521, 18)
+local point2 = hs.geometry.point(1570, 195)
 local point3 = hs.geometry.point(818, 614)
 local newDesktop = hs.geometry.point(37, 94)
 
@@ -7,11 +7,11 @@ hs.hotkey.bind({"alt", "shift"}, "R", function()
     local currentPoint = hs.mouse.getAbsolutePosition()
 
     hs.eventtap.leftClick(point3)
-    hs.timer.usleep(100000)
+    hs.timer.usleep(500000)
     hs.eventtap.leftClick(point1)
-    hs.timer.usleep(30000)
+    hs.timer.usleep(70000)
     hs.eventtap.leftClick(point2)
-    hs.timer.usleep(2000)
+    hs.timer.usleep(4000)
     hs.eventtap.leftClick(currentPoint)
 
 end)
@@ -34,7 +34,7 @@ hs.hotkey.bind({"alt", "shift"}, "D", function()
     local screenIDs = hs.spaces.allSpaces()[screenUUID]    
     hs.spaces.gotoSpace(screenIDs[#screenIDs])
 end)
-
+ 
 
 hs.hotkey.bind({"alt", "shift"}, "X", function()
     local activeID = hs.spaces.focusedSpace()
@@ -66,13 +66,15 @@ end)
 hs.hotkey.bind({"alt", "cmd", "ctrl"}, "up", function()
     local slackBundleID = "com.tinyspeck.slackmacgap"
     local warpBundleID = "dev.warp.Warp-Stable"
-    local cursorApp = "Cursor.app"
+    -- local cursorApp = "Cursor.app"
+    local vscodeApp = "Visual Studio Code.app"
     local arcBundleID = "company.thebrowser.Browser"
 
     hs.application.launchOrFocusByBundleID(slackBundleID)
     hs.application.launchOrFocusByBundleID(warpBundleID)
 
-    hs.application.launchOrFocus(cursorApp)
+    -- hs.application.launchOrFocus(cursorApp)
+    hs.application.launchOrFocus(vscodeApp)
 
     hs.timer.doAfter(2, function()
         hs.osascript.applescript([[
@@ -135,3 +137,83 @@ end)
 hs.hotkey.bind({"ctrl"}, "F5", function()
     hs.eventtap.leftClick(hs.geometry.point(907, 564))
 end)
+
+local super = {"ctrl", "alt", "cmd"}
+
+local function orderedScreens()
+  local laptop
+  local others = {}
+  for _, s in ipairs(hs.screen.allScreens()) do
+    if not laptop and s:name():match("Built%-in") then
+      laptop = s
+    else
+      table.insert(others, s)
+    end
+  end
+  table.sort(others, function(a, b) return a:frame().x < b:frame().x end)
+  if laptop then table.insert(others, 1, laptop) end
+  return others
+end
+
+local function moveToScreen(win, target, duration)
+    local unit = win:frame():toUnitRect(win:screen():frame())
+    local newFrame = unit:fromUnitRect(target:frame())
+
+    -- Chromium/Electron apps break animated resizes while AXEnhancedUserInterface is on
+    local axApp = hs.axuielement.applicationElement(win:application())
+    local wasEnhanced = axApp and axApp.AXEnhancedUserInterface
+    if wasEnhanced then axApp.AXEnhancedUserInterface = false end
+
+    win:setFrameInScreenBounds(newFrame, duration)
+
+    if wasEnhanced then
+      hs.timer.doAfter((duration or hs.window.animationDuration) + 0.1, function()
+        axApp.AXEnhancedUserInterface = true
+      end)
+    end
+end
+
+-- held at module level so pending timers aren't garbage-collected before firing
+local fullScreenMoveTimer
+
+local function sendTo(i)
+  return function()
+    local win = hs.window.focusedWindow()
+    local target = orderedScreens()[i]
+    if not (win and target) or win:screen():id() == target:id() then return end
+
+    if not win:isFullScreen() then return moveToScreen(win, target) end
+
+    win:setFullScreen(false)
+    local polls = 0
+    -- moves sent during the exit animation are often dropped, so keep retrying until it lands
+    fullScreenMoveTimer = hs.timer.doEvery(0.05, function()
+      polls = polls + 1
+      if polls > 80 then return fullScreenMoveTimer:stop() end
+      if win:isFullScreen() then return end
+      if win:screen():id() ~= target:id() then return moveToScreen(win, target, 0) end
+      fullScreenMoveTimer:stop()
+      win:setFullScreen(true)
+    end)
+  end
+end
+
+hs.hotkey.bind(super, "[",  sendTo(1)) -- laptop
+hs.hotkey.bind(super, "]",  sendTo(2)) -- middle
+hs.hotkey.bind(super, "\\", sendTo(3)) -- last
+
+local CORNER_INSET = 40
+
+local function clickConductorCorner()
+  local app = hs.application.get("com.conductor.app")
+  local win = app and (app:mainWindow() or app:allWindows()[1])
+  if not win or win:isMinimized() then return end
+
+  local original = hs.mouse.absolutePosition()
+  local f = win:screen():frame()
+  hs.eventtap.leftClick(hs.geometry.point(f.x + f.w - CORNER_INSET, f.y + f.h - CORNER_INSET))
+  hs.mouse.absolutePosition(original)
+end
+
+hs.hotkey.bind(super, "T", clickConductorCorner)
+hs.hotkey.bind(super, "right", clickConductorCorner)
